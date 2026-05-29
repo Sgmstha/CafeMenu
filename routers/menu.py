@@ -18,7 +18,7 @@ import uuid
 from datetime import date
 
 # Import schema templates and database snapshots helper
-from models.database import db, MenuItemCreate, save_menu_snapshot
+from models.database import db, MenuItemCreate, BulkMenuDelete, save_menu_snapshot
 from models.auth import get_current_user, require_admin
 
 router = APIRouter(prefix="/api/menu", tags=["menu"])
@@ -101,6 +101,37 @@ def delete_item(item_id: str, admin=Depends(require_admin)):
     del db.menu_items[item_id]
     save_menu_snapshot()
     return {"message": "Item deleted successfully"}
+
+
+@router.delete("")
+def clear_menu(admin=Depends(require_admin)):
+    """
+    Archives the current menu state and clears all active menu items.
+    Requires administrator authorization.
+    """
+    save_menu_snapshot()
+    db.menu_items.clear()
+    return {"message": "Menu cleared successfully"}
+
+
+@router.post("/remove")
+def remove_menu_items(payload: BulkMenuDelete, admin=Depends(require_admin)):
+    """
+    Removes a selected list of menu items from today’s menu while saving the
+    current menu snapshot in menu history.
+    Requires administrator authorization.
+    """
+    if not payload.ids:
+        raise HTTPException(400, "At least one item id must be provided")
+
+    save_menu_snapshot()
+    removed_count = 0
+    for item_id in payload.ids:
+        if item_id in db.menu_items:
+            del db.menu_items[item_id]
+            removed_count += 1
+
+    return {"message": f"Removed {removed_count} selected menu item(s)"}
 
 
 @router.get("/history")

@@ -50,6 +50,10 @@ class MenuItemCreate(BaseModel):
     price: float
     category: str
 
+class BulkMenuDelete(BaseModel):
+    """Schema validated when removing selected menu items."""
+    ids: list[str]
+
 class OrderItem(BaseModel):
     """Schema representing an individual line item inside a customer order."""
     item_id: str

@@ -1052,13 +1052,21 @@
 
         <!-- Menu management -->
         <div id="menu-tab" class="admin-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="font-family:'Playfair Display',serif; color:var(--accent)">Menu Items</h3>
-                <button class="btn btn-primary btn-sm" onclick="openModal('add-item-modal')">+ Add Item</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <h3 style="font-family:'Playfair Display',serif; color:var(--accent)">Menu Items</h3>
+                    <p class="text-muted" style="margin:0; font-size:14px">Choose items to remove, or clear the full menu for the next day.</p>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-danger btn-sm" onclick="clearMenu()">Clear Menu</button>
+                    <button class="btn btn-outline btn-sm" onclick="removeSelectedItems()">Remove Selected</button>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('add-item-modal')">+ Add Item</button>
+                </div>
             </div>
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th style="width:40px"><input type="checkbox" id="select-all-menu-items" onclick="toggleSelectAllItems(this)" /></th>
                         <th>Name</th>
                         <th>Category</th>
                         <th>Price</th>
@@ -1228,209 +1236,228 @@
                 <div class="form-group">
                     <label>Category</label>
                     <select id="item-cat">
-            <option>Beverages</option>
-            <option>Snacks</option>
-            <script>
-              /**
-               * Campus Café - Frontend SPA Controller
-               * -------------------------------------
-               * Handles state management, UI rendering, user authentication flows,
-               * shopping cart arithmetic, checkout/OTP authorization, and the administrator dashboard.
-               *
-               * TODO (Future Work):
-               *   1. Migrate this script to a robust client-side framework (e.g. React, Vue, or Svelte).
-               *   2. Implement client-side routing (e.g. HTML5 History API or hash router) rather than simple style.display toggles.
-               *   3. Introduce a structured state manager (like Redux, Pinia, or Zustand) to clean up global variables.
-               *   4. Add proper loading indicators (skeletons/spinners) during async API fetches.
-               */
+                        <option>Beverages</option>
+                        <option>Snacks</option>
+                        <option>Meals</option>
+                        <option>Desserts</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+                <button class="btn btn-outline btn-sm" onclick="closeModal('add-item-modal')">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="saveMenuItem()">Save Item</button>
+            </div>
+        </div>
+    </div>
 
-              // ── Global Application State ────────────────────────────────────────────────
-              let cart = {};          // Cart structure: item_id (str) -> {item: MenuItem, qty: int}
-              let menuItems = [];     // Cached list of all menu items retrieved from the API
-              let currentCat = 'All'; // Currently active category filter selected by the user
-              let selectedPayment = ''; // Active payment option choice: "coin" | "cash" | "online"
-              let currentUser = null; // Session object of the authenticated user: {name, phone, role, coins}
+    <script>
+        /**
+         * Campus Café - Frontend SPA Controller
+         * -------------------------------------
+         * Handles state management, UI rendering, user authentication flows,
+         * shopping cart arithmetic, checkout/OTP authorization, and the administrator dashboard.
+         *
+         * TODO (Future Work):
+         *   1. Migrate this script to a robust client-side framework (e.g. React, Vue, or Svelte).
+         *   2. Implement client-side routing (e.g. HTML5 History API or hash router) rather than simple style.display toggles.
+         *   3. Introduce a structured state manager (like Redux, Pinia, or Zustand) to clean up global variables.
+         *   4. Add proper loading indicators (skeletons/spinners) during async API fetches.
+         */
 
-              // ── Application Bootstrapper ──────────────────────────────────────────────
-              async function init() {
-                /**
-                 * Runs immediately on page load. Checks the user's login state
-                 * and directs them to the correct initial view based on the URL path.
-                 */
-                await checkAuth();
-                const path = window.location.pathname;
-                if (path === '/menu') {
-                  showView('menu-view');
-                  loadMenu();
-                } else if (path === '/admin' && currentUser?.role === 'admin') {
-                  showView('admin-view');
-                  loadAdmin();
-                } else {
-                  showView('home-view');
-                }
-              }
+        // ── Global Application State ────────────────────────────────────────────────
+        let cart = {}; // Cart structure: item_id (str) -> {item: MenuItem, qty: int}
+        let menuItems = []; // Cached list of all menu items retrieved from the API
+        let currentCat = 'All'; // Currently active category filter selected by the user
+        let selectedPayment = ''; // Active payment option choice: "coin" | "cash" | "online"
+        let currentUser = null; // Session object of the authenticated user: {name, phone, role, coins}
 
-              // ── User Authentication Handlers ───────────────────────────────────────────
-              async function checkAuth() {
-                /**
-                 * Validates if the user has an active session cookie on the backend.
-                 * Updates navbar state dynamically upon resolution.
-                 */
-                try {
-                  const r = await fetch('/api/auth/me');
-                  const d = await r.json();
-                  currentUser = d.authenticated ? d : null;
-                  updateNav();
-                } catch (e) {
-                  currentUser = null;
-                  updateNav();
-                }
-              }
+        // ── Application Bootstrapper ──────────────────────────────────────────────
+        async function init() {
+            /**
+             * Runs immediately on page load. Checks the user's login state
+             * and directs them to the correct initial view based on the URL path.
+             */
+            await checkAuth();
+            const path = window.location.pathname;
+            if (path === '/menu') {
+                showView('menu-view');
+                loadMenu();
+            } else if (path === '/admin' && currentUser?.role === 'admin') {
+                showView('admin-view');
+                loadAdmin();
+            } else {
+                showView('home-view');
+            }
+        }
 
-              function updateNav() {
-                /**
-                 * Synchronizes the navigation bar UI elements with the current login status.
-                 * Toggles visibility of Login, Logout, Admin, and Wallet Coin Balance badges.
-                 */
-                const u = currentUser;
-                document.getElementById('login-nav-btn').style.display = u ? 'none' : '';
-                document.getElementById('logout-nav-btn').style.display = u ? '' : 'none';
-                document.getElementById('user-info').style.display = u ? 'flex' : 'none';
+        // ── User Authentication Handlers ───────────────────────────────────────────
+        async function checkAuth() {
+            /**
+             * Validates if the user has an active session cookie on the backend.
+             * Updates navbar state dynamically upon resolution.
+             */
+            try {
+                const r = await fetch('/api/auth/me');
+                const d = await r.json();
+                currentUser = d.authenticated ? d : null;
+                updateNav();
+            } catch (e) {
+                currentUser = null;
+                updateNav();
+            }
+        }
 
-                // Show the Admin dashboard link only if user role is specifically 'admin'
-                document.getElementById('admin-nav-btn').style.display = (u?.role === 'admin') ? '' : 'none';
+        function updateNav() {
+            /**
+             * Synchronizes the navigation bar UI elements with the current login status.
+             * Toggles visibility of Login, Logout, Admin, and Wallet Coin Balance badges.
+             */
+            const u = currentUser;
+            document.getElementById('login-nav-btn').style.display = u ? 'none' : '';
+            document.getElementById('logout-nav-btn').style.display = u ? '' : 'none';
+            document.getElementById('user-info').style.display = u ? 'flex' : 'none';
 
-                if (u) {
-                  document.getElementById('user-name').textContent = u.name;
-                  const coinEl = document.getElementById('coin-bal');
-                  // Hide coin wallet indicator for admins
-                  if (u.role !== 'admin') {
+            // Show the Admin dashboard link only if user role is specifically 'admin'
+            document.getElementById('admin-nav-btn').style.display = (u?.role === 'admin') ? '' : 'none';
+
+            if (u) {
+                document.getElementById('user-name').textContent = u.name;
+                const coinEl = document.getElementById('coin-bal');
+                // Hide coin wallet indicator for admins
+                if (u.role !== 'admin') {
                     coinEl.style.display = '';
                     coinEl.textContent = `🪙 ${u.coins}`;
-                  } else {
+                } else {
                     coinEl.style.display = 'none';
-                  }
                 }
-              }
+            }
+        }
 
-              async function doLogin() {
-                /**
-                 * Gathers inputs and submits a sign-in request to the backend auth session handler.
-                 */
-                const phone = document.getElementById('login-phone').value.trim();
-                const password = document.getElementById('login-pass').value;
+        async function doLogin() {
+            /**
+             * Gathers inputs and submits a sign-in request to the backend auth session handler.
+             */
+            const phone = document.getElementById('login-phone').value.trim();
+            const password = document.getElementById('login-pass').value;
 
-                const r = await apiFetch('/api/auth/login', 'POST', { phone, password });
-                if (r.ok) {
-                  const d = await r.json();
-                  toast('Welcome back!', 'success');
-                  closeModal('login-modal');
-                  await checkAuth();
-                  // Redirect to respective initial dashboard view
-                  if (d.role === 'admin') {
+            const r = await apiFetch('/api/auth/login', 'POST', {
+                phone,
+                password
+            });
+            if (r.ok) {
+                const d = await r.json();
+                toast('Welcome back!', 'success');
+                closeModal('login-modal');
+                await checkAuth();
+                // Redirect to respective initial dashboard view
+                if (d.role === 'admin') {
                     showView('admin-view');
                     loadAdmin();
-                  } else {
+                } else {
                     showView('menu-view');
                     loadMenu();
-                  }
-                } else {
-                  const e = await r.json();
-                  toast(e.detail || 'Login failed', 'error');
                 }
-              }
+            } else {
+                const e = await r.json();
+                toast(e.detail || 'Login failed', 'error');
+            }
+        }
 
-              async function doRegister() {
-                /**
-                 * Gathers inputs and registers a new student user.
-                 */
-                const name = document.getElementById('reg-name').value.trim();
-                const phone = document.getElementById('reg-phone').value.trim();
-                const password = document.getElementById('reg-pass').value;
+        async function doRegister() {
+            /**
+             * Gathers inputs and registers a new student user.
+             */
+            const name = document.getElementById('reg-name').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const password = document.getElementById('reg-pass').value;
 
-                if (!name || !phone || !password) {
-                  toast('Please fill out all registration fields', 'error');
-                  return;
-                }
+            if (!name || !phone || !password) {
+                toast('Please fill out all registration fields', 'error');
+                return;
+            }
 
-                const r = await apiFetch('/api/auth/register', 'POST', { name, phone, password });
-                if (r.ok) {
-                  toast('Account created successfully! Please login.', 'success');
-                  closeModal('register-modal');
-                  openModal('login-modal');
-                  // Pre-fill phone number for convenience
-                  document.getElementById('login-phone').value = phone;
-                } else {
-                  const e = await r.json();
-                  toast(e.detail || 'Registration failed', 'error');
-                }
-              }
+            const r = await apiFetch('/api/auth/register', 'POST', {
+                name,
+                phone,
+                password
+            });
+            if (r.ok) {
+                toast('Account created successfully! Please login.', 'success');
+                closeModal('register-modal');
+                openModal('login-modal');
+                // Pre-fill phone number for convenience
+                document.getElementById('login-phone').value = phone;
+            } else {
+                const e = await r.json();
+                toast(e.detail || 'Registration failed', 'error');
+            }
+        }
 
-              async function doLogout() {
-                /**
-                 * Clears the HTTP-only authentication session cookie and resets client-side state.
-                 */
-                await apiFetch('/api/auth/logout', 'POST');
-                currentUser = null;
-                cart = {};
-                updateNav();
-                updateCartBar();
-                showView('home-view');
-                toast('Logged out successfully', 'info');
-              }
+        async function doLogout() {
+            /**
+             * Clears the HTTP-only authentication session cookie and resets client-side state.
+             */
+            await apiFetch('/api/auth/logout', 'POST');
+            currentUser = null;
+            cart = {};
+            updateNav();
+            updateCartBar();
+            showView('home-view');
+            toast('Logged out successfully', 'info');
+        }
 
-              // ── Menu Filtering and Rendering ───────────────────────────────────────────
-              async function loadMenu() {
-                /**
-                 * Fetches active menu items from backend API and populates the view.
-                 */
-                const r = await fetch('/api/menu');
-                const d = await r.json();
-                menuItems = d.items;
-                // Render category filter tabs (always prepending the 'All' general filter)
-                buildCatTabs(['All', ...d.categories]);
-                renderMenu('All');
-              }
+        // ── Menu Filtering and Rendering ───────────────────────────────────────────
+        async function loadMenu() {
+            /**
+             * Fetches active menu items from backend API and populates the view.
+             */
+            const r = await fetch('/api/menu');
+            const d = await r.json();
+            menuItems = d.items;
+            // Render category filter tabs (always prepending the 'All' general filter)
+            buildCatTabs(['All', ...d.categories]);
+            renderMenu('All');
+        }
 
-              function buildCatTabs(cats) {
-                /**
-                 * Dynamic builder for the menu category filters.
-                 */
-                const el = document.getElementById('cat-tabs');
-                el.innerHTML = cats.map(c =>
-                  `<button class="tab ${c === currentCat ? 'active' : ''}" onclick="filterCat('${c}')">${c}</button>`
-                ).join('');
-              }
+        function buildCatTabs(cats) {
+            /**
+             * Dynamic builder for the menu category filters.
+             */
+            const el = document.getElementById('cat-tabs');
+            el.innerHTML = cats.map(c =>
+                `<button class="tab ${c === currentCat ? 'active' : ''}" onclick="filterCat('${c}')">${c}</button>`
+            ).join('');
+        }
 
-              function filterCat(cat) {
-                /**
-                 * Toggles category tabs and triggers menu re-rendering.
-                 */
-                currentCat = cat;
-                document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.textContent === cat));
-                renderMenu(cat);
-              }
+        function filterCat(cat) {
+            /**
+             * Toggles category tabs and triggers menu re-rendering.
+             */
+            currentCat = cat;
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.textContent === cat));
+            renderMenu(cat);
+        }
 
-              function renderMenu(cat) {
-                /**
-                 * Renders the menu cards grid, handling empty states and unavailable items.
-                 */
-                const filtered = cat === 'All' ? menuItems : menuItems.filter(i => i.category === cat);
-                const grid = document.getElementById('menu-grid');
-                const empty = document.getElementById('menu-empty');
+        function renderMenu(cat) {
+            /**
+             * Renders the menu cards grid, handling empty states and unavailable items.
+             */
+            const filtered = cat === 'All' ? menuItems : menuItems.filter(i => i.category === cat);
+            const grid = document.getElementById('menu-grid');
+            const empty = document.getElementById('menu-empty');
 
-                if (!filtered.length) {
-                  grid.innerHTML = '';
-                  empty.style.display = '';
-                  return;
-                }
+            if (!filtered.length) {
+                grid.innerHTML = '';
+                empty.style.display = '';
+                return;
+            }
 
-                empty.style.display = 'none';
-                grid.innerHTML = filtered.map(item => {
-                  const qty = cart[item.id]?.qty || 0;
-                  const na = !item.available; // Check if admin has disabled this item
+            empty.style.display = 'none';
+            grid.innerHTML = filtered.map(item => {
+                        const qty = cart[item.id]?.qty || 0;
+                        const na = !item.available; // Check if admin has disabled this item
 
-                  return `<div class="menu-card ${na ? 'unavailable' : ''}">
+                        return `<div class="menu-card ${na ? 'unavailable' : ''}">
       <span class="item-cat">${item.category}</span>
       <div class="item-header">
         <span class="item-name">${item.name}</span>
@@ -1701,14 +1728,15 @@
                     </tr>`; const mr = await fetch('/api/menu'); const md = await mr.json(); const mc = document.getElementById('menu-count'); if (mc) mc.textContent = md.items.length; } async function loadAdminMenu() { /** * Renders the administrative menu
                     list with operations toggles. */ const r = await fetch('/api/menu'); const d = await r.json(); document.getElementById('admin-menu-body').innerHTML = d.items.map(i => `
                     <tr>
+                        <td><input type="checkbox" class="menu-select-checkbox" data-id="${i.id}" /></td>
                         <td>${i.name}</td>
                         <td>${i.category}</td>
                         <td>NPR ${i.price}</td>
                         <td><span class="badge ${i.available ? 'badge-success' : 'badge-danger'}">${i.available ? 'Available' : 'Unavailable'}</span></td>
                         <td style="display:flex;gap:8px;align-items:center">
                             <button class="avail-toggle" onclick="toggleItem('${i.id}')">${i.available ? 'Disable' : 'Enable'}</button>
-                            <button class="btn btn-outline btn-sm" onclick="editItem(${JSON.stringify(i).replace(/" /g, '&quot;')}) ">Edit</button>
-        <button class="btn btn-danger btn-sm " onclick="deleteItem( '${i.id}') ">Del</button>
+                            <button class="btn btn-outline btn-sm" onclick="editItem(${JSON.stringify(i).replace(/"/g, '&quot;')})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteItem('${i.id}')">Del</button>
       </td>
     </tr>`).join('');
               }
@@ -1770,6 +1798,40 @@
                 if (r.ok) {
                   toast('Item deleted successfully', 'success');
                   loadAdminMenu();
+                }
+              }
+
+              function toggleSelectAllItems(source) {
+                document.querySelectorAll('.menu-select-checkbox').forEach(cb => cb.checked = source.checked);
+              }
+
+              async function removeSelectedItems() {
+                const ids = Array.from(document.querySelectorAll('.menu-select-checkbox:checked')).map(cb => cb.dataset.id);
+                if (!ids.length) {
+                  toast('Please select at least one menu item to remove', 'error');
+                  return;
+                }
+                if (!confirm(`Remove ${ids.length} selected item${ids.length > 1 ? 's' : ''} from today’s menu?`)) return;
+                const r = await apiFetch('/api/menu/remove', 'POST', { ids });
+                if (r.ok) {
+                  toast('Selected items removed from menu', 'success');
+                  document.getElementById('select-all-menu-items').checked = false;
+                  loadAdminMenu();
+                } else {
+                  const e = await r.json();
+                  toast(e.detail || 'Failed to remove selected items', 'error');
+                }
+              }
+
+              async function clearMenu() {
+                if (!confirm('Archive the current menu and clear all items for the next day?')) return;
+                const r = await apiFetch('/api/menu', 'DELETE');
+                if (r.ok) {
+                  toast('Menu cleared and archived successfully', 'success');
+                  loadAdminMenu();
+                } else {
+                  const e = await r.json();
+                  toast(e.detail || 'Failed to clear the menu', 'error');
                 }
               }
 
@@ -1899,7 +1961,7 @@
 
               // Initialize bootstrapper sequence
               init();
-            </script>
+    </script>
 </body>
 
 </html>
