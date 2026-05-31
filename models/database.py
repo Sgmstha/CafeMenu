@@ -132,21 +132,27 @@ def seed_db():
 
     # Seed Regular Student User (role: user)
     # Default phone: 9811111111 | Default password: user123
-    # Starts with a pre-loaded balance of 250 NPR digital coins.
+    # Starts with a pre-loaded balance of 320 NPR digital coins.
     db.users["9811111111"] = {
         "id": str(uuid.uuid4()),
-        "name": "Ravi Thapa",
+        "name": "Aaditya Sharma",
         "phone": "9811111111",
         "password_hash": pwd.hash("user123"),
-        "coins": 250.0,
+        "coins": 320.0,
         "role": "user",
+        "roll": "CS-2023-042",
+        "section": "B.Tech CSE - Section A",
+        "counter": "Main Campus Counter 1",
+        "points": 125,
     }
 
     # Seed initial menu offerings
     items = [
         ("Masala Tea",        "Spiced milk tea",              25,  "Beverages"),
         ("Black Coffee",      "Strong filter coffee",         40,  "Beverages"),
-        ("Cold Coffee",       "Chilled blended coffee",       80,  "Beverages"),
+        ("Classic Cold Coffee with Ice Cream", "Rich blended campus-favorite espresso topped with vanilla bean ice cream and chocolate syrup", 85, "Beverages"),
+        ("Double Cheesy College Burger", "Crispy vegetable patty, double cheddar sliced tomato, iceberg lettuce, and special campus sauce", 110, "Snacks"),
+        ("Signature Butter Paneer with Laccha Paratha", "Creamy rich tomato-gravy paneer cubes cooked in premium white butter, served with two flaky laccha parathas", 150, "Meals"),
         ("Momo (Veg)",        "8 pcs steamed veg dumplings",  120, "Snacks"),
         ("Momo (Chicken)",    "8 pcs chicken dumplings",      150, "Snacks"),
         ("Veg Sandwich",      "Grilled veg sandwich",         90,  "Snacks"),

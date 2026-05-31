@@ -58,6 +58,7 @@ def place_order(order: OrderCreate, user=Depends(get_current_user)):
             raise HTTPException(400, f"Insufficient coins. Balance: {u['coins']} NPR, Required: {total} NPR")
             
         db.users[phone]["coins"] -= total
+        db.users[phone]["points"] = db.users[phone].get("points", 0) + int(total * 0.1)
 
     # 3. Save the finalized order record
     order_id = str(uuid.uuid4())[:8].upper()  # Simple human-readable short order ID
@@ -74,6 +75,19 @@ def place_order(order: OrderCreate, user=Depends(get_current_user)):
     db.orders.append(record)
     
     return {"message": "Order placed successfully", "order_id": order_id, "total": total}
+
+
+@router.get("/my")
+def my_orders(user=Depends(get_current_user)):
+    """
+    Retrieves all orders belonging to the currently authenticated user.
+    Sorted by the newest order first.
+    """
+    if not user:
+        raise HTTPException(401, "Not authenticated")
+    phone = user.get("phone")
+    user_orders = [o for o in db.orders if o["customer_phone"] == phone]
+    return {"orders": sorted(user_orders, key=lambda o: o["created_at"], reverse=True)}
 
 
 @router.get("")

@@ -39,6 +39,7 @@ def register(user: UserCreate):
         "password_hash": hash_password(user.password),
         "coins": 0.0,
         "role": "user",  # Default role is always user. Admins must be seeded.
+        "points": 0,
     }
     return {"message": "Registered successfully"}
 
@@ -92,6 +93,9 @@ def me(user=Depends(get_current_user)):
         "phone": user["phone"],
         "role": user["role"],
         "coins": u.get("coins", 0),  # Fetched dynamically from database
+        "roll": u.get("roll"),
+        "section": u.get("section"),
+        "counter": u.get("counter"),
     }
 
 
