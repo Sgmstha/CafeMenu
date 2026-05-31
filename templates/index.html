@@ -1964,6 +1964,210 @@
                 padding: 6px 12px;
                 font-size: 12px;
             }
+
+            .profile-header-banner {
+                padding: 16px 14px;
+            }
+            .profile-header-banner .profile-avatar-lg {
+                width: 42px;
+                height: 42px;
+                font-size: 15px;
+            }
+            .profile-header-name { font-size: 14px; }
+            .profile-header-sub { font-size: 10px; }
+            .profile-coin-badge { font-size: 11px; padding: 5px 12px; }
+            .profile-card { padding: 24px 14px; margin-top: 12px; }
+            .profile-card-avatar { width: 56px; height: 56px; font-size: 20px; }
+            .profile-card-name { font-size: 17px; }
+            .profile-card-sub { font-size: 11px; }
+            .profile-info-row { padding: 13px 0; }
+            .profile-info-label { font-size: 12px; }
+            .profile-info-value { font-size: 12px; }
+            .profile-logout-btn { padding: 13px; font-size: 12px; }
+        }
+
+        /* ── Profile View Styles ─────────────────────────────────────── */
+        .profile-container {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .profile-header-banner {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .profile-avatar-lg {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--accent-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 17px;
+            flex-shrink: 0;
+            letter-spacing: 0.5px;
+        }
+
+        .profile-header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .profile-header-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .profile-header-sub {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-coin-badge {
+            background: #1a1a1a;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        [data-theme="light"] .profile-coin-badge {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .profile-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px 28px;
+            text-align: center;
+        }
+
+        .profile-card-avatar {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: #222;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            margin: 0 auto 12px;
+            letter-spacing: 1px;
+            border: 3px solid var(--border);
+        }
+
+        [data-theme="light"] .profile-card-avatar {
+            background: #222;
+            color: #fff;
+        }
+
+        .profile-card-name {
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .profile-card-sub {
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        .profile-info-list {
+            text-align: left;
+            border-top: 1px solid var(--border);
+        }
+
+        .profile-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .profile-info-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .profile-info-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            text-align: right;
+            word-break: break-all;
+        }
+
+        .profile-referral-badge {
+            background: rgba(200, 169, 110, 0.12);
+            border: 1px solid rgba(200, 169, 110, 0.3);
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .profile-referral-badge:hover {
+            background: rgba(200, 169, 110, 0.22);
+        }
+
+        .profile-logout-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            background: rgba(220, 80, 60, 0.08);
+            border: 1px solid rgba(220, 80, 60, 0.2);
+            border-radius: 10px;
+            color: #dc503c;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .profile-logout-btn:hover {
+            background: rgba(220, 80, 60, 0.15);
+            border-color: rgba(220, 80, 60, 0.4);
         }
     </style>
 </head>
@@ -2105,6 +2309,12 @@
         <h3 style="font-family:'Playfair Display',serif;color:var(--accent);margin-bottom:16px">Previous Orders</h3>
         <div id="prev-orders-list"></div>
     </div>
+
+    <!-- ═══════════════════════════════════ PROFILE VIEW ═════════════════════════ -->
+    <div id="profile-view" class="view">
+        <!-- Dynamic content rendered by JS renderProfile() -->
+    </div>
+
     <!-- ═══════════════════════════════════ ADMIN VIEW ══════════════════════════ -->
     <div id="admin-view" class="view">
         <!-- Stats Row -->
@@ -2572,9 +2782,8 @@
                 openCart();
             } else if (action === 'profile') {
                 if (currentUser) {
-                    if (confirm(`Logged in as ${currentUser.name}.\n\nWould you like to log out?`)) {
-                        doLogout();
-                    }
+                    showView('profile-view');
+                    renderProfile();
                 } else {
                     openModal('login-modal');
                 }
@@ -2586,6 +2795,69 @@
                     loadMenu();
                 }
             }
+        }
+
+        function renderProfile() {
+            const el = document.getElementById('profile-view');
+            if (!el) return;
+            const u = currentUser;
+            if (!u) { showView('home-view'); return; }
+
+            const initials = u.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+            const rollNum = u.roll || 'N/A';
+            const section = u.section || 'N/A';
+            const counter = u.counter || '';
+            const phone = u.phone || 'N/A';
+            const points = u.points || 0;
+            const coins = u.coins || 0;
+            const emailSlug = u.name.toLowerCase().replace(/\s+/g, '.') + '@collegedomain.edu';
+            const referral = 'CAMPUS' + phone.slice(-4);
+
+            el.innerHTML = `
+                <div class="profile-container">
+                    <!-- Header Banner -->
+                    <div class="profile-header-banner">
+                        <div class="profile-avatar-lg">${initials}</div>
+                        <div class="profile-header-info">
+                            <div class="profile-header-name">${u.name} 🎓</div>
+                            <div class="profile-header-sub">Roll: ${rollNum} • Sec: ${section}${counter ? ' • ' + counter : ''}</div>
+                        </div>
+                        <div class="profile-coin-badge">🪙 ${coins} Coins</div>
+                    </div>
+
+                    <!-- Profile Card -->
+                    <div class="profile-card">
+                        <div class="profile-card-avatar">${initials}</div>
+                        <div class="profile-card-name">${u.name}</div>
+                        <div class="profile-card-sub">Roll: ${rollNum} &bull; Sec: ${section}</div>
+
+                        <div class="profile-info-list">
+                            <div class="profile-info-row">
+                                <span class="profile-info-label">Class & Section</span>
+                                <span class="profile-info-value">${section}</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="profile-info-label">College Email</span>
+                                <span class="profile-info-value">${emailSlug}</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="profile-info-label">Contact Phone</span>
+                                <span class="profile-info-value">${phone}</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="profile-info-label">Loyalty accumulation</span>
+                                <span class="profile-info-value" style="color: var(--accent);">${points} points</span>
+                            </div>
+                            <div class="profile-info-row">
+                                <span class="profile-info-label">Interactive Referral</span>
+                                <span class="profile-referral-badge" onclick="navigator.clipboard.writeText('${referral}');toast('Referral code copied!','success')">${referral}</span>
+                            </div>
+                        </div>
+
+                        <button class="profile-logout-btn" onclick="doLogout()">Leave College Session (Logout)</button>
+                    </div>
+                </div>
+            `;
         }
 
         async function renderHome() {
