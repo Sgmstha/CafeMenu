@@ -85,6 +85,7 @@
         nav {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
             padding: 0 24px;
             display: flex;
             align-items: center;
@@ -1316,6 +1317,121 @@
             display: none;
         }
 
+        /* ── CUSTOM HOMEPAGE & BOTTOM NAV ── */
+        .home-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: left;
+        }
+
+        .coin-balance-card {
+            background: linear-gradient(135deg, #2c1d11 0%, #150e08 100%);
+            border: 1px solid #4a3321;
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        [data-theme="light"] .coin-balance-card {
+            background: linear-gradient(135deg, #fff7f0 0%, #ffd8be 100%);
+            border: 1px solid #ffbe94;
+            color: #4a2306;
+        }
+
+        .daily-hits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 12px;
+        }
+
+        .hit-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .hit-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .hit-card-img {
+            height: 160px;
+            background-size: cover;
+            background-position: center;
+            width: 100%;
+        }
+
+        .hit-card-content {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            height: 64px;
+            z-index: 999;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 8px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--muted);
+            background: none;
+            border: none;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+            height: 100%;
+            transition: color 0.2s;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--accent);
+        }
+
+        .bottom-nav-icon {
+            font-size: 20px;
+        }
+
+        @media (max-width: 680px) {
+            .bottom-nav {
+                display: flex;
+            }
+            body {
+                padding-bottom: 76px;
+            }
+        }
+
         @media (max-width: 900px) {
             nav {
                 padding: 0 16px;
@@ -1553,6 +1669,10 @@
                 display: none !important;
             }
 
+            .nav-links .nav-btn:not(#theme-toggle-btn) {
+                display: none !important;
+            }
+
             .view {
                 padding: 16px 12px;
             }
@@ -1677,13 +1797,22 @@
             }
 
             .cart-bar {
-                flex-wrap: wrap;
+                bottom: 64px !important;
+                flex-wrap: nowrap;
                 gap: 10px;
-                padding: 12px 14px;
+                padding: 12px 16px;
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+                border-top: 1px solid var(--border);
+                background: var(--surface);
             }
 
             .cart-info {
-                width: 100%;
+                width: auto;
+                white-space: nowrap;
+            }
+
+            .cart-total, .cart-count {
+                white-space: nowrap !important;
             }
 
             .otp-inputs {
@@ -1868,21 +1997,10 @@
 
     <!-- ═══════════════════════════════════ HOME VIEW ═══════════════════════════ -->
     <div id="home-view" class="view active">
-        <div class="hero">
-            <h1>Your Campus<br>Kitchen</h1>
-            <p>Fresh meals, quick snacks & great coffee — delivered to your tray.</p>
-            <div class="hero-actions">
-                <button class="btn btn-primary" onclick="showView('menu-view');loadMenu()">View Menu</button>
-                <button class="btn btn-outline" onclick="openModal('login-modal')">Sign In to Order</button>
-            </div>
-        </div>
-        <div class="qr-section">
-            <h3>Scan to Browse</h3>
-            <p>Point your phone camera at this QR code to open the menu</p>
-            <img id="qr-img" class="qr-img" src="/api/qr/menu" alt="QR Code" />
-            <p class="text-muted mt-2" style="margin-top:12px; font-size:12px">Scans open public menu view</p>
-        </div>
+        <!-- Dynamic content rendered by JS renderHome() -->
     </div>
+
+
 
 
     <!-- ══════════════════════════════════ MENU VIEW ════════════════════════════ -->
@@ -2416,6 +2534,158 @@
 
 
 
+        function getInitials(name) {
+            if (!name) return 'U';
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        async function ensureMenuItemsLoaded() {
+            if (!menuItems || !menuItems.length) {
+                try {
+                    const r = await fetch('/api/menu');
+                    const d = await r.json();
+                    menuItems = d.items;
+                } catch (e) { console.error('ensureMenuItemsLoaded error:', e); }
+            }
+        }
+
+        async function addHitToCart(itemName) {
+            await ensureMenuItemsLoaded();
+            const item = menuItems.find(i => i.name === itemName);
+            if (!item) {
+                toast('Item not found in menu', 'error');
+                return;
+            }
+            if (!item.available) {
+                toast('Item is currently unavailable', 'error');
+                return;
+            }
+            changeQty(item.id, 1);
+            toast(`${itemName} added to tray!`, 'success');
+        }
+
+        function clickBottomNav(action, btnId) {
+            document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById(btnId)?.classList.add('active');
+
+            if (action === 'cart') {
+                openCart();
+            } else if (action === 'profile') {
+                if (currentUser) {
+                    if (confirm(`Logged in as ${currentUser.name}.\n\nWould you like to log out?`)) {
+                        doLogout();
+                    }
+                } else {
+                    openModal('login-modal');
+                }
+            } else {
+                showView(action);
+                if (action === 'tracking-view') {
+                    loadTracking();
+                } else if (action === 'menu-view') {
+                    loadMenu();
+                }
+            }
+        }
+
+        async function renderHome() {
+            const home = document.getElementById('home-view');
+            if (!home) return;
+
+            const u = currentUser;
+            let html = '';
+
+            html += `<div class="home-container">`;
+
+            if (u) {
+                // Logged in Student Dashboard
+                // Contactless Coin Balance Card
+                html += `
+                    <div class="coin-balance-card">
+                        <div style="position: absolute; right: -20px; bottom: -20px; font-size: 90px; font-weight: 900; color: rgba(255, 255, 255, 0.03); pointer-events: none; text-transform: uppercase;">COIN</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                            <div>
+                                <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; font-weight: 700; margin-bottom: 6px;">CONTACTLESS COIN BALANCE</div>
+                                <div style="font-size: 32px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    🪙 ${u.coins} CC
+                                </div>
+                            </div>
+                            <div style="background: rgba(200, 169, 110, 0.15); border: 1px solid rgba(200, 169, 110, 0.3); border-radius: 4px; padding: 4px 8px; font-size: 10px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">
+                                PWA Active Card
+                            </div>
+                        </div>
+                        <div style="border-top: 1px solid var(--border); padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--accent); cursor: pointer;" onclick="toast('Coin load via payment gateways coming soon!', 'info')">
+                            <span>Tap to load cash via eSewa / Card / Khalti</span>
+                            <span>&rarr;</span>
+                        </div>
+                    </div>
+
+                    <!-- Table Ordering Banner -->
+                    <div class="table-banner" style="background: #fff9f0; border: 1px solid #ffe8cc; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; text-align: left; color: #8a5a22;">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: #ffdca8; color: #ff6600; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                            🧭
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #ff6600;">Ordering at a specific Table?</div>
+                            <div style="font-size: 12px; opacity: 0.9; margin-top: 2px; line-height: 1.4;">
+                                Scan any physical QR code on tables around the college cafeteria to instantly tag food deliveries here!
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Guest landing view
+                html += `
+                    <div class="hero" style="text-align: center; padding: 48px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;">
+                        <h1 style="font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 56px); color: var(--accent); line-height: 1.1; margin-bottom: 12px;">Your Campus<br>Kitchen</h1>
+                        <p style="font-size: 15px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; max-width: 500px; margin-left: auto; margin-right: auto;">Fresh meals, quick snacks & great coffee — delivered to your tray.</p>
+                        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="showView('menu-view');loadMenu()">View Menu</button>
+                            <button class="btn btn-outline" onclick="openModal('login-modal')">Sign In to Order</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+
+            if (u) {
+                // Loyalty Card
+                html += `
+                    <div class="rewards-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; text-align: left; margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                            <span style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text); display: flex; align-items: center; gap: 6px;">
+                                <span style="color: var(--accent);">🎗️</span> Campus Loyals & Rewards
+                            </span>
+                            <span style="font-size: 11px; font-weight: 700; color: var(--accent);">Goal: 200 pts</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px;">
+                            <span style="font-weight: 600; color: var(--text);">Accumulated: <span style="color: var(--accent);">${u.points || 0} pts</span></span>
+                            <span style="color: var(--muted); font-size: 10px;">10% back on orders</span>
+                        </div>
+                        <div style="width: 100%; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-bottom: 12px; border: 1px solid var(--border);">
+                            <div style="width: ${Math.min(100, ((u.points || 0) / 200) * 100)}%; height: 100%; background: var(--accent); border-radius: 4px;"></div>
+                        </div>
+                        <div style="font-size: 11px; color: var(--muted); text-align: center; line-height: 1.4;">
+                            Reach 200 loyalty points to auto-convert them into <span style="font-weight: 600; color: var(--text);">50 Extra Campus Coins</span> instantly.
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Scan to Browse section for guests
+                html += `
+                    <div class="qr-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; text-align: center; margin-top: 10px;">
+                        <h3 style="font-family: 'Playfair Display', serif; margin-bottom: 6px; color: var(--accent); font-size: 18px;">Scan to Browse</h3>
+                        <p style="color: var(--muted); font-size: 13px; margin-bottom: 16px;">Browse menu instantly on your phone</p>
+                        <img id="qr-img" class="qr-img" src="/api/qr/menu" alt="QR Code" style="width: 130px; height: 130px; border-radius: 8px; border: 2px solid var(--border); margin: 0 auto;" />
+                    </div>
+                `;
+            }
+
+            html += `</div>`; // Close home-container
+
+            home.innerHTML = html;
+        }
+
         // ── Application Bootstrapper ──────────────────────────────────────────────
         async function init() {
             updateThemeButton();
@@ -2424,6 +2694,7 @@
              * and directs them to the correct initial view based on the URL path.
              */
             await checkAuth();
+            renderHome();
             const path = window.location.pathname;
             if (path === '/menu') {
                 showView('menu-view');
@@ -2447,9 +2718,11 @@
                 const d = await r.json();
                 currentUser = d.authenticated ? d : null;
                 updateNav();
+                renderHome();
             } catch (e) {
                 currentUser = null;
                 updateNav();
+                renderHome();
             }
         }
 
@@ -2556,6 +2829,7 @@
             cart = {};
             updateNav();
             updateCartBar();
+            renderHome();
             showView('home-view');
             toast('Logged out successfully', 'info');
         }
@@ -3221,6 +3495,29 @@
         init();
     </script>
 
+    <!-- Bottom Nav (Visible on Mobile) -->
+    <div class="bottom-nav">
+        <button class="bottom-nav-item active" id="btn-nav-home" onclick="clickBottomNav('home-view', 'btn-nav-home')">
+            <span class="bottom-nav-icon">🧭</span>
+            <span>Home</span>
+        </button>
+        <button class="bottom-nav-item" id="btn-nav-menu" onclick="clickBottomNav('menu-view', 'btn-nav-menu')">
+            <span class="bottom-nav-icon">🔍</span>
+            <span>Food Menu</span>
+        </button>
+        <button class="bottom-nav-item" id="btn-nav-cart" onclick="clickBottomNav('cart', 'btn-nav-cart')">
+            <span class="bottom-nav-icon">🛍️</span>
+            <span>Meal Tray</span>
+        </button>
+        <button class="bottom-nav-item" id="btn-nav-track" onclick="clickBottomNav('tracking-view', 'btn-nav-track')">
+            <span class="bottom-nav-icon">⏱️</span>
+            <span>Tracking</span>
+        </button>
+        <button class="bottom-nav-item" id="btn-nav-profile" onclick="clickBottomNav('profile', 'btn-nav-profile')">
+            <span class="bottom-nav-icon">👤</span>
+            <span>Profile</span>
+        </button>
+    </div>
 
 </body>
 
